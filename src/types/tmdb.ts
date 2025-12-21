@@ -1,22 +1,24 @@
+export interface Rating {
+  voteCount: number;
+  avgRating: number;
+}
 export interface Episode {
-  id: number;
+  id: string;
   episode_number: number;
-  season_number: number;
-  name: string;
-  vote_average: number;
-  vote_count: number;
+  season: string;
+  title: string;
+  rating: Rating;
 }
 
 export interface Season {
-  season_number: number;
+  season: string;
   episode_count: number;
   episodes?: Episode[];
 }
 
 export interface Show {
-  id: number;
-  name: string;
-  poster_path: string;
+  id: string;
+  title: string;
   seasons: Season[];
-  number_of_seasons: number;
+  number_of_seasons?: number;
 }

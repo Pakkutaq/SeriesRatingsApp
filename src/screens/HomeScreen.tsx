@@ -1,35 +1,36 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Button } from 'react-native';
-import { getShowDetails } from '../services/tmdbService';
+import { getShowDetails, getSeasons } from '../services/tmdbService';
+import type { Show } from '../types/tmdb'
 import ShowCard from '../components/ShowCard';
 
 export default function App() {
-
   const [show, setShow] = useState<Show | null>(null);
-
-
-  const getShowDetailsAsync = async (showId: number) => {
+  
+  const getShowDetailsAsync = async (showId: string) => {
     const showResult: Show = await getShowDetails(showId);
-    setShow(showResult);
+    const seasons = await getSeasons(showResult.id);
+    setShow({ ...showResult, seasons });
   };
 
   return (
     <View style={styles.container}>
-      <Button title="Get Show Details" onPress={() => getShowDetailsAsync(1399)} />
-        {show ? <ShowCard show={show} /> : <Text>No show loaded</Text>}
+      <Button title="Get Show Details" onPress={() => getShowDetailsAsync('tt0944947')} />
+      {show ? <ShowCard show={show} /> : <Text style={styles.text}>No show loaded</Text>}
     </View>
-    )
+  )
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: '#1a1a1a',
+    padding: 20,
   },
   text: {
     color: 'white',
-    fontSize: 30,
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 20,
   },
 });

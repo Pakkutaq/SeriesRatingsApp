@@ -1,19 +1,18 @@
-import { Show, Episode, Season } from '../types/tmdb';
+import { Show, Episode, Season, Rating } from '../types/tmdb';
 
 export function fromApiShow(apiShow: any): Show {
     return {
         id: apiShow.id,
-        name: apiShow.name,
-        poster_path: apiShow.poster_path,
-        number_of_seasons: apiShow.number_of_seasons,
+        title: apiShow.primaryTitle,
+        number_of_seasons: undefined,
         seasons: []
     };
 }
 
 export function fromApiSeason(apiSeason: any): Season {
     return {
-        season_number: apiSeason.season_number,
-        episode_count: apiSeason.episode_count,
+        season: apiSeason.season,
+        episode_count: apiSeason.episodeCount,
         episodes: []
     };
 }
@@ -21,10 +20,17 @@ export function fromApiSeason(apiSeason: any): Season {
 export function fromApiEpisode(apiEpisode: any): Episode {
     return {
         id: apiEpisode.id,
-        episode_number: apiEpisode.episode_number,
-        season_number: apiEpisode.season_number,
-        name: apiEpisode.name,
-        vote_average: apiEpisode.vote_average,
-        vote_count: apiEpisode.vote_count
+        episode_number: apiEpisode.episodeNumber,
+        season: apiEpisode.season,
+        title: apiEpisode.title,
+        rating: fromApiRating(apiEpisode.rating),
     };
 }
+
+export function fromApiRating(apiRating: any): Rating {
+    return {
+        voteCount: apiRating.voteCount,
+        avgRating: apiRating.aggregateRating,
+    }
+}
+

@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Show } from '../types/tmdb';
+import { View, Text, StyleSheet, FlatList } from 'react-native';
+import { Show, Season } from '../types/tmdb';
+import SeasonCard from './SeasonCard';
 
 interface ShowCardProps {
   show: Show;
@@ -9,8 +10,14 @@ interface ShowCardProps {
 export default function ShowCard({ show }: ShowCardProps) {
   return (
     <View style={styles.card}>
-      <Text style={styles.title}>{show.name}</Text>
-      <Text style={styles.info}>Number of seasons: {show.number_of_seasons}</Text>
+      <Text style={styles.title}>{show.title}</Text>
+      <FlatList
+        data={show.seasons}
+        keyExtractor={( season: Season ) => season.season}
+        renderItem={({ item }: { item: Season }) => (
+          <SeasonCard season={item}/>
+        )}
+        />
     </View>
   );
 }
