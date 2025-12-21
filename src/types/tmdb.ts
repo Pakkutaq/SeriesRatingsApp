@@ -21,4 +21,13 @@ export interface Show {
   title: string;
   seasons: Season[];
   number_of_seasons?: number;
+  posterUrl?: string;
+}
+
+export interface SearchShow {
+  id: string,
+  title: string,
+  posterUrl?: string,
+  rating?: number,
+
 }

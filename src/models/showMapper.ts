@@ -1,11 +1,12 @@
-import { Show, Episode, Season, Rating } from '../types/tmdb';
+import { Show, Episode, Season, Rating, SearchShow } from '../types/tmdb';
 
 export function fromApiShow(apiShow: any): Show {
     return {
         id: apiShow.id,
         title: apiShow.primaryTitle,
         number_of_seasons: undefined,
-        seasons: []
+        seasons: [],
+        posterUrl: apiShow.primaryImage.url,
     };
 }
 
@@ -31,6 +32,15 @@ export function fromApiRating(apiRating: any): Rating {
     return {
         voteCount: apiRating.voteCount,
         avgRating: apiRating.aggregateRating,
+    }
+}
+
+export function fromApiSearchShow(apiSearch: any): SearchShow {
+    return {
+        id: apiSearch.id,
+        title: apiSearch.primaryTitle,
+        posterUrl: apiSearch.primaryImage?.url,
+        rating: apiSearch.rating?.aggregateRating,
     }
 }
 
