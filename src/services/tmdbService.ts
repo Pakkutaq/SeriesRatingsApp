@@ -12,9 +12,13 @@ export const searchShows = async (query: string): Promise<SearchShow[]> => {
       }
     });
     console.log(response.status)
-    return response.data.titles.map((show: any) => fromApiSearchShow(show));
+    // For now we should not allow moves, only type: tvSeries
+    const filteredShows = response.data.titles.filter((item: any) => {
+      return item.type === 'tvSeries' && item.rating !== undefined
+    })
+    return filteredShows.map((show: any) => fromApiSearchShow(show));
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error searching shows:', error);
     throw error;
   }
 };
@@ -25,7 +29,7 @@ export const getShowDetails = async (showId: string): Promise<Show> => {
     const response = await axios.get(`${IMDB_BASE_URL}/titles/${showId}`)
     return fromApiShow(response.data);
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error fetching show details:', error);
     throw error;
   }
 };3
@@ -46,7 +50,7 @@ export const getSeasons = async (showId: string): Promise<Season[]> => {
     }
     return seasonsWithEpisodes;
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error fetching season:', error);
     throw error;
   }
 }

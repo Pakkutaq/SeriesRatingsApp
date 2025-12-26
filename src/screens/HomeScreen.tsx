@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Button, ActivityIndicator, BackHandler, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, BackHandler, ScrollView } from 'react-native';
 import { getShowDetails, getSeasons, searchShows } from '../services/tmdbService';
-import type { Show, SearchShow } from '../types/tmdb'
-import { ShowCard, SearchShowCard } from '../components/index'
-import { isDisabled } from 'react-native/types_generated/Libraries/LogBox/Data/LogBoxData';
+import type { Show, SearchShow } from '../types/tmdb';
+import { SearchShowCard, SearchBar, SeriesDetail } from '../components/index';
 
-export default function App() {
+export default function HomeScreen() {
   const [show, setShow] = useState<Show | null>(null);
   const [loading, setLoading] = useState(false);
   const [searches, setSearch] = useState<SearchShow[] | null>(null);
@@ -15,13 +14,12 @@ export default function App() {
   useEffect(() => {
     const backAction = () => {
       if (show || searches) {
-        // If we have a show or searches, go back to home
         setShow(null);
         setSearch(null);
-        onQueryChange('');  // Clear search query
-        return true;  // Prevent default behavior (exiting app)
+        onQueryChange('');
+        return true;
       }
-      return false;  // Let default behavior happen (exit app)
+      return false;
     };
 
     const backHandler = BackHandler.addEventListener(
@@ -29,12 +27,12 @@ export default function App() {
       backAction
     );
 
-    return () => backHandler.remove();  // Cleanup
+    return () => backHandler.remove();
   }, [show, searches]);
   
   const getShowDetailsAsync = async (showId: string, showTitle: string) => {
-    onQueryChange(showTitle);  // Set search query to clicked show's title
-    setSearch(null);  // Clear searches
+    onQueryChange(showTitle);
+    setSearch(null);
     setLoading(true);
     try {
       const showResult: Show = await getShowDetails(showId);
@@ -46,64 +44,115 @@ export default function App() {
   };
 
   const searchForShow = async (query: string) => {
+    if (!query.trim()) return;
+    
     setShow(null);
+    setLoading(true);
     try {
       const searchResult: SearchShow[] = await searchShows(query);
       setSearch(searchResult.sort((a, b) => {
         if (a.rating === undefined) return 1;
         if (b.rating === undefined) return -1;
         return b.rating - a.rating;
-      }).slice(0,5));
+      }).slice(0, 5));
     } catch (error) {
-      console.log(error)
+      console.log(error);
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.centerContainer}>
-        {!show && (
-        <>
-          <TextInput 
-            style={styles.input}
-            onChangeText={onQueryChange}
+  <View style={styles.container}>
+    <ScrollView 
+      style={styles.scrollView}
+      contentContainerStyle={styles.scrollContent}
+    >
+      <View style={styles.topBar}>
+        <Text style={styles.logo}>SERIES GRAPH</Text>
+        <View style={styles.topSearchContainer}>
+          <SearchBar 
             value={searchQuery}
-            placeholder='Search for a show'
-            placeholderTextColor='#888'
+            onChangeText={onQueryChange}
+            onSearch={() => searchForShow(searchQuery)}
+            size="small"
           />
-          <Button title="Search for show" onPress={() => searchForShow(searchQuery)} disabled={loading}/>
-        </>
-        )}
-        {loading ? (
-          <ActivityIndicator size="large" color="#0dbfe7ff" style={styles.spinner} />
-        ) : searches ? (
-          <SearchShowCard 
-            shows={searches}
-            onShowPress={(showId, showTitle) => {
-              console.log('Clicked show:', showId);
-              getShowDetailsAsync(showId, showTitle);
-            }}
-          />
-        ) : show ? (
-          <ShowCard show={show} />
-        ) : (
-          <Text style={styles.text}>Ingen shows fundet</Text>
-        )}
+        </View>
       </View>
-    </View>
-  )
-}
 
+      {show ? (
+        // Show the series detail
+        <SeriesDetail show={show} />
+      ) : (
+        // Home view with center search
+        <View style={styles.centerContainer}>
+          <View style={styles.mainSearchContainer}>
+            <SearchBar 
+              value={searchQuery}
+              onChangeText={onQueryChange}
+              onSearch={() => searchForShow(searchQuery)}
+              size="large"
+            />
+          </View>
+
+          {loading && (
+            <ActivityIndicator size="large" color="#0dbfe7ff" style={styles.spinner} />
+          )}
+
+          {searches && !loading && (
+            <SearchShowCard 
+              shows={searches}
+              onShowPress={(showId, showTitle) => {
+                getShowDetailsAsync(showId, showTitle);
+              }}
+            />
+          )}
+        </View>
+      )}
+    </ScrollView>
+  </View>
+)}
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#1a1a1a',
-    padding: 20,
+  },
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    backgroundColor: '#1a1a1a',
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+    marginTop: 25,
+  },
+  logo: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginRight: 15,
+  },
+  topSearchContainer: {
+    flex: 1,
+    maxWidth: 250,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   centerContainer: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 60,
+  },
+  mainSearchContainer: {
+    width: '100%',
+    marginBottom: 20,
   },
   spinner: {
     marginTop: 20,
@@ -113,14 +162,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     marginTop: 20,
-  },
-  input: {
-    height: 40,
-    minWidth: 300,
-    margin: 12,
-    borderWidth: 1,
-    borderColor: 'white',
-    color: 'white',
-    padding: 10,
   },
 });
